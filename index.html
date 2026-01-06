@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>お仕事診断 - あなたらしい働き方を見つけよう</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Hiragino Kaku Gothic ProN', 'Yu Gothic', 'Meiryo', sans-serif;
+            background: linear-gradient(135deg, #f8f4f0 0%, #fceef5 100%);
+            min-height: 100vh;
+            color: #6b5b5b;
+            line-height: 1.8;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .screen {
+            display: none;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card {
+            background: white;
+            border-radius: 24px;
+            padding: 40px 30px;
+            box-shadow: 0 8px 32px rgba(219, 179, 195, 0.2);
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 28px;
+            color: #d4a5a5;
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: 600;
+            line-height: 1.5;
+        }
+
+        h2 {
+            font-size: 22px;
+            color: #b897ab;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 15px;
+            color: #9b8d8d;
+            margin-bottom: 30px;
+            line-height: 1.8;
+        }
+
+        .start-btn, .next-btn, .restart-btn, .pdf-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #e8b4bc 0%, #d4a5a5 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(212, 165, 165, 0.3);
+            margin-top: 10px;
+        }
+
+        .start-btn:hover, .next-btn:hover, .restart-btn:hover, .pdf-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(212, 165, 165, 0.4);
+        }
+
+        .restart-btn {
+            background: linear-gradient(135deg, #c5b8c7 0%, #b897ab 100%);
+        }
+
+        .pdf-btn {
+            background: linear-gradient(135deg, #f5d6e0 0%, #e8b4bc 100%);
+            color: #6b5b5b;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #f5e8ed;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #e8b4bc 0%, #d4a5a5 100%);
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+
+        .question-number {
+            text-align: center;
+            color: #b897ab;
+            font-size: 14px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .question-text {
+            font-size: 20px;
+            text-align: center;
+            color: #6b5b5b;
+            margin-bottom: 35px;
+            font-weight: 600;
+            line-height: 1.6;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option {
+            position: relative;
+        }
+
+        .option input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+        }
+
+        .option label {
+            display: block;
+            padding: 18px 20px;
+            background: #faf7f5;
+            border: 2px solid #f5e8ed;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+            color: #6b5b5b;
+            text-align: center;
+        }
+
+        .option input[type="radio"]:checked + label {
+            background: linear-gradient(135deg, #fceef5 0%, #f5e8ed 100%);
+            border-color: #e8b4bc;
+            color: #d4a5a5;
+            font-weight: 600;
+            transform: scale(1.02);
+            box-shadow: 0 4px 12px rgba(232, 180, 188, 0.2);
+        }
+
+        .option label:hover {
+            border-color: #e8b4bc;
+            background: #fceef5;
+        }
+
+        .next-btn {
+            margin-top: 25px;
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .next-btn.enabled {
+            opacity: 1;
+            cursor: pointer;
+        }
+
+        .result-type {
+            text-align: center;
+            font-size: 26px;
+            color: #d4a5a5;
+            margin-bottom: 25px;
+            font-weight: 700;
+            padding: 20px;
+            background: linear-gradient(135deg, #fceef5 0%, #f5e8ed 100%);
+            border-radius: 16px;
+        }
+
+        .result-message {
+            font-size: 16px;
+            line-height: 2;
+            margin-bottom: 25px;
+            color: #6b5b5b;
+            text-align: center;
+            padding: 0 10px;
+        }
+
+        .result-features {
+            background: #faf7f5;
+            padding: 25px;
+            border-radius: 16px;
+            margin-bottom: 25px;
+        }
+
+        .result-features h3 {
+            font-size: 18px;
+            color: #b897ab;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .result-features ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .result-features li {
+            padding: 10px 0;
+            padding-left: 25px;
+            position: relative;
+            color: #6b5b5b;
+            font-size: 15px;
+        }
+
+        .result-features li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #e8b4bc;
+            font-weight: 700;
+        }
+
+        .pdf-notice {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #f5f0f5 0%, #faf7f5 100%);
+            border-radius: 16px;
+            margin-bottom: 20px;
+            color: #9b8d8d;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 16px;
+            color: #b897ab;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f5e8ed;
+            border-top-color: #e8b4bc;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .icon {
+            text-align: center;
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+            }
+
+            .card {
+                padding: 30px 20px;
+                border-radius: 20px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .question-text {
+                font-size: 18px;
+            }
+
+            .option label {
+                font-size: 15px;
+                padding: 16px 15px;
+            }
+        }
+
+        @keyframes selectPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .option input[type="radio"]:checked + label {
+            animation: selectPulse 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- スタート画面 -->
+        <div id="startScreen" class="screen active">
+            <div class="card">
+                <div class="icon">🌸</div>
+                <h1>あなたらしい働き方<br>診断</h1>
+                <p class="subtitle">
+                    たった5つの質問に答えるだけで<br>
+                    あなたに合ったお仕事タイプがわかります。<br><br>
+                    リラックスして、直感で答えてくださいね。
+                </p>
+                <button class="start-btn" onclick="startDiagnosis()">診断をはじめる</button>
+            </div>
+        </div>
+
+        <!-- 質問画面 -->
+        <div id="questionScreen" class="screen">
+            <div class="card">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="question-number" id="questionNumber"></div>
+                <div class="question-text" id="questionText"></div>
+                <div class="options" id="optionsContainer"></div>
+                <button class="next-btn" id="nextBtn" onclick="nextQuestion()">次へ</button>
+            </div>
+        </div>
+
+        <!-- ローディング画面 -->
+        <div id="loadingScreen" class="screen">
+            <div class="card">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>あなたにぴったりの働き方を<br>診断しています...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 診断結果画面 -->
+        <div id="resultScreen" class="screen">
+            <div class="card">
+                <div class="icon" id="resultIcon"></div>
+                <div class="result-type" id="resultType"></div>
+                <div class="result-message" id="resultMessage"></div>
+                <div class="result-features">
+                    <h3>あなたに向いている働き方</h3>
+                    <ul id="resultFeatures"></ul>
+                </div>
+                <div class="pdf-notice">
+                    このタイプの詳しいお仕事内容や<br>
+                    おすすめの働き方は<br>
+                    PDFでご案内しています
+                </div>
+                <button class="pdf-btn" onclick="viewPDF()">PDFを見る・ダウンロードする</button>
+                <button class="restart-btn" onclick="restartDiagnosis()">もう一度診断する</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========================================
+        // 質問データ（ここを編集して質問をカスタマイズ）
+        // ========================================
+        const questions = [
+            {
+                id: 1,
+                text: "細かい作業をコツコツと丁寧に進めることが好き",
+                category: "detail" // 集計用カテゴリ
+            },
+            {
+                id: 2,
+                text: "誰かをサポートしたり、役に立てることにやりがいを感じる",
+                category: "support"
+            },
+            {
+                id: 3,
+                text: "自分のペースで落ち着いて仕事をしたい",
+                category: "independent"
+            },
+            {
+                id: 4,
+                text: "新しいことを学んだり、スキルを磨くのが楽しい",
+                category: "learning"
+            },
+            {
+                id: 5,
+                text: "人と関わりながら、コミュニケーションを大切にして働きたい",
+                category: "communication"
+            }
+        ];
+
+        // ========================================
+        // 診断結果タイプ（ここを編集して結果をカスタマイズ）
+        // ========================================
+        const resultTypes = {
+            gentle_support: {
+                icon: "💝",
+                title: "やさしいサポートタイプ",
+                message: "あなたは、誰かを支えることに喜びを感じる、心温かな方です。細やかな気配りと丁寧な対応で、相手に安心感を与えられるあなたらしさを大切にしてくださいね。",
+                features: [
+                    "オンライン秘書やアシスタント業務",
+                    "カスタマーサポート",
+                    "スケジュール管理やメール対応",
+                    "人をサポートする在宅ワーク"
+                ],
+                pdfUrl: "https://example.com/pdfs/gentle-support.pdf" // 実際のPDFのURLに差し替え
+            },
+            steady_worker: {
+                icon: "📋",
+                title: "コツコツ事務タイプ",
+                message: "あなたは、丁寧に正確に、着実に物事を進める力を持っています。焦らず自分のペースで働くことで、あなたの良さが最大限に発揮されます。無理せず、マイペースに進んでいきましょう。",
+                features: [
+                    "データ入力や文書作成",
+                    "経理サポートや請求書処理",
+                    "在宅での事務作業全般",
+                    "正確性が求められる業務"
+                ],
+                pdfUrl: "https://example.com/pdfs/steady-worker.pdf"
+            },
+            creative_learner: {
+                icon: "✨",
+                title: "学び続けるクリエイティブタイプ",
+                message: "あなたは、新しいことに挑戦する好奇心と、柔軟な発想を持っています。学びながら成長できる環境があなたにぴったり。あなたらしく、自由に表現していってくださいね。",
+                features: [
+                    "SNS運用やコンテンツ作成",
+                    "Webデザインやライティング",
+                    "企画サポートやリサーチ業務",
+                    "クリエイティブな副業"
+                ],
+                pdfUrl: "https://example.com/pdfs/creative-learner.pdf"
+            },
+            warm_communicator: {
+                icon: "🌷",
+                title: "あたたかコミュニケーションタイプ",
+                message: "あなたは、人との繋がりを大切にし、温かいコミュニケーションで場を和ませる力があります。人と関わりながら働くことで、あなたも周りも笑顔になれるはずです。",
+                features: [
+                    "チャットサポートやオンライン接客",
+                    "コミュニティマネージャー",
+                    "お客様対応やメール返信代行",
+                    "人と繋がるお仕事全般"
+                ],
+                pdfUrl: "https://example.com/pdfs/warm-communicator.pdf"
+            },
+            balanced_type: {
+                icon: "🌼",
+                title: "バランス型マルチタイプ",
+                message: "あなたは、様々なことに対応できる柔軟性と適応力を持っています。色々なことに挑戦しながら、自分に合った働き方を見つけていけます。焦らず、楽しみながら進んでいきましょう。",
+                features: [
+                    "複数の業務を組み合わせた働き方",
+                    "総合的なアシスタント業務",
+                    "柔軟に対応できる在宅ワーク",
+                    "幅広いスキルを活かせる仕事"
+                ],
+                pdfUrl: "https://example.com/pdfs/balanced-type.pdf"
+            }
+        };
+
+        // ========================================
+        // 回答選択肢（全質問共通・固定）
+        // ========================================
+        const options = [
+            { value: 5, text: "とても当てはまる" },
+            { value: 4, text: "だいたい当てはまる" },
+            { value: 3, text: "どちらとも言えない" },
+            { value: 2, text: "あまり当てはまらない" },
+            { value: 1, text: "全く当てはまらない" }
+        ];
+
+        // ========================================
+        // 診断ロジック
+        // ========================================
+        let currentQuestion = 0;
+        let answers = {};
+
+        function startDiagnosis() {
+            showScreen('questionScreen');
+            currentQuestion = 0;
+            answers = {};
+            displayQuestion();
+        }
+
+        function displayQuestion() {
+            const question = questions[currentQuestion];
+            const progress = ((currentQuestion + 1) / questions.length) * 100;
+
+            document.getElementById('progressFill').style.width = progress + '%';
+            document.getElementById('questionNumber').textContent = `質問 ${currentQuestion + 1} / ${questions.length}`;
+            document.getElementById('questionText').textContent = question.text;
+
+            // 選択肢を生成
+            const optionsHTML = options.map((option, index) => `
+                <div class="option">
+                    <input type="radio"
+                           id="option${index}"
+                           name="answer"
+                           value="${option.value}"
+                           onchange="enableNextButton()">
+                    <label for="option${index}">${option.text}</label>
+                </div>
+            `).join('');
+
+            document.getElementById('optionsContainer').innerHTML = optionsHTML;
+
+            const nextBtn = document.getElementById('nextBtn');
+            nextBtn.classList.remove('enabled');
+            nextBtn.style.opacity = '0.5';
+            nextBtn.style.cursor = 'not-allowed';
+        }
+
+        function enableNextButton() {
+            const nextBtn = document.getElementById('nextBtn');
+            nextBtn.classList.add('enabled');
+            nextBtn.style.opacity = '1';
+            nextBtn.style.cursor = 'pointer';
+        }
+
+        function nextQuestion() {
+            const selectedOption = document.querySelector('input[name="answer"]:checked');
+
+            if (!selectedOption) {
+                return;
+            }
+
+            const question = questions[currentQuestion];
+            answers[question.id] = {
+                score: parseInt(selectedOption.value),
+                category: question.category
+            };
+
+            currentQuestion++;
+
+            if (currentQuestion < questions.length) {
+                displayQuestion();
+            } else {
+                calculateResult();
+            }
+        }
+
+        function calculateResult() {
+            showScreen('loadingScreen');
+
+            // ローディング演出
+            setTimeout(() => {
+                const categoryScores = {};
+                let totalScore = 0;
+
+                // カテゴリごとのスコアを集計
+                Object.values(answers).forEach(answer => {
+                    if (!categoryScores[answer.category]) {
+                        categoryScores[answer.category] = 0;
+                    }
+                    categoryScores[answer.category] += answer.score;
+                    totalScore += answer.score;
+                });
+
+                // 最もスコアの高いカテゴリを特定
+                let maxCategory = null;
+                let maxScore = 0;
+
+                Object.entries(categoryScores).forEach(([category, score]) => {
+                    if (score > maxScore) {
+                        maxScore = score;
+                        maxCategory = category;
+                    }
+                });
+
+                // 診断結果のタイプを決定
+                let resultType;
+                const avgScore = totalScore / questions.length;
+
+                if (categoryScores.support >= 4 && categoryScores.detail >= 4) {
+                    resultType = 'gentle_support';
+                } else if (categoryScores.detail >= 4 && categoryScores.independent >= 4) {
+                    resultType = 'steady_worker';
+                } else if (categoryScores.learning >= 4) {
+                    resultType = 'creative_learner';
+                } else if (categoryScores.communication >= 4) {
+                    resultType = 'warm_communicator';
+                } else {
+                    resultType = 'balanced_type';
+                }
+
+                displayResult(resultType);
+            }, 2000);
+        }
+
+        function displayResult(typeKey) {
+            const result = resultTypes[typeKey];
+
+            document.getElementById('resultIcon').textContent = result.icon;
+            document.getElementById('resultType').textContent = result.title;
+            document.getElementById('resultMessage').textContent = result.message;
+
+            const featuresHTML = result.features.map(feature =>
+                `<li>${feature}</li>`
+            ).join('');
+            document.getElementById('resultFeatures').innerHTML = featuresHTML;
+
+            // PDFのURLを保存
+            window.currentPdfUrl = result.pdfUrl;
+
+            showScreen('resultScreen');
+        }
+
+        function viewPDF() {
+            if (window.currentPdfUrl) {
+                window.open(window.currentPdfUrl, '_blank');
+            } else {
+                alert('PDFの準備中です。しばらくお待ちください。');
+            }
+        }
+
+        function restartDiagnosis() {
+            showScreen('startScreen');
+            currentQuestion = 0;
+            answers = {};
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        // 初期表示
+        window.onload = function() {
+            showScreen('startScreen');
+        };
+    </script>
+</body>
+</html>
